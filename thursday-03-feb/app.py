@@ -3,21 +3,21 @@ import json, uuid  # 1 billion per second will take 100 years to get 50%
 
 items = [{"id": "1", "name": "a"}, {"id": "2", "name": "b"}, {"id": "3", "name": "c"}]
 
-#####################################
+##########################################################################
 # decorator
 @get("/")
 def _():
     return "home"
 
 
-#####################################
+##########################################################################
 @get("/items")
 # @get("/items/")
 def _():
     return json.dumps(items)
 
 
-#####################################
+##########################################################################
 # Query strings
 # every other varible after the 1st one starts with &
 # 127.0.0.1:4444/test?id=1&name=a
@@ -29,7 +29,7 @@ def _():
     return f"Hi, you are at {school_name}. The year is {year} and you are {age} years old"
 
 
-#####################################
+##########################################################################
 # 127.0.0.1:4444/friendly/brand/xxx/color/xxx
 @get("/friendly/brand/<brand_name>/color/<item_color>")
 def _(brand_name, item_color):
@@ -37,9 +37,7 @@ def _(brand_name, item_color):
     # You want for brand xxx and the color is: xxx
 
 
-#####################################
-
-
+##########################################################################
 @post("/items")
 def _():
     item_name = request.forms.get("item_name")
@@ -66,7 +64,7 @@ def _():
     return item_id
 
 
-#####################################
+##########################################################################
 @get("/items/<item_id>")
 def _(item_id):
 
@@ -84,7 +82,7 @@ def _(item_id):
     return "Item not found"
 
 
-#####################################
+##########################################################################
 @delete("/items/<item_id>")
 def _(item_id):
     # Validation
@@ -97,7 +95,7 @@ def _(item_id):
     return "Item not found"
 
 
-#####################################
+##########################################################################
 # Port from 0 to 65535
 # Reserved from 0 to 1024
 run(host="127.0.0.1", port=4444, debug=True, reloader=True)
