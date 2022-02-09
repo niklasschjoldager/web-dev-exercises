@@ -1,0 +1,20 @@
+% include("header", title="Items") 
+
+<main>
+
+  <section class="items">
+    % for item in items:
+      <div class="item">
+        <form action="/delete-item" method="POST">
+          <input name="item_id" type="hidden" value='{{ item["id"]}}'>
+          <div>Name: {{ item["name"] }}</div>
+          <div>Price: {{ item["price"] }}</div>
+          <button type="submit">🗑️</button>
+        </form>
+      </div>
+    % end
+  </section>
+
+</main>
+
+% include("footer")
