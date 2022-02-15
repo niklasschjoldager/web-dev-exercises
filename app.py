@@ -1,13 +1,17 @@
 from bottle import error, get, run, static_file, view
 
 ############################################################
-import index_get  # GET
-import items_get  # GET
-import login_get  # GET
-import signup_get  # GET
+# GET
+import index_get
+import items_get
+import login_get
+import signup_get
+import users_get
 
-import add_item_post  # POST
-import delete_item_post  # POST
+# POST
+import add_item_post
+import delete_item_post
+import signup_post
 
 
 ############################################################
