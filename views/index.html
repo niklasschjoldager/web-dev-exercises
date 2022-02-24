@@ -1,5 +1,17 @@
-% include("header", title="Home")
+% rebase('base.html', title="Home")
 
-<main>Homepage</main>
+<h1>Frontpage</h1>
 
-% include("footer")
+<form enctype="multipart/form-data" action="/upload-image" method="post">
+  <fieldset>
+    <legend>
+      Upload image
+    </legend>
+    <label for="my_image">
+      <span>Select image</span>
+      <input type="file" name="my_image" id="my_image">
+    </label>
+    <button type="submit">Upload</button>
+  </fieldset>
+</form>
+

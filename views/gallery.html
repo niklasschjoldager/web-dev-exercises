@@ -1,0 +1,11 @@
+% rebase('base.html', title="Gallery")
+
+<h1>Gallery of all user uploaded images</h1>
+
+% if images:
+  % for image in images:
+    <img src="/images/{{ image }}" alt="Cool image" />
+  % end
+% else:
+    <h2>No images uploaded 😔</h2>
+% end
