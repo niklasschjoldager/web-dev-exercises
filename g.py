@@ -1,5 +1,4 @@
-import os
+TWEET_TEXT_MIN_LENGTH = 1
+TWEET_TEXT_MAX_LENGTH = 100
 
-APP_FOLDER_ABSOLUTE_PATH = os.path.dirname(os.path.abspath(__file__))
-IMAGE_FOLDER_ABSOLUTE_PATH = f"{APP_FOLDER_ABSOLUTE_PATH}/images"
-IMAGE_FOLDER_RELATIVE_PATH = "/images"
+REGEX_UUID4 = '^[0-9a-f]{8}-[0-9a-f]{4}-[4][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'

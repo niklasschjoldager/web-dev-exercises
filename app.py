@@ -1,94 +1,181 @@
-from bottle import default_app, get, post, redirect, request, run, view, static_file
-import os
+from bottle import default_app, delete, get, post, put, request, response, run, view
+from g import REGEX_UUID4, TWEET_TEXT_MAX_LENGTH, TWEET_TEXT_MIN_LENGTH
+import re
+import time
 import uuid
-import imghdr
 
-from g import APP_FOLDER_ABSOLUTE_PATH, IMAGE_FOLDER_ABSOLUTE_PATH, IMAGE_FOLDER_RELATIVE_PATH
+
+tweets = {
+    "30bbfc87-47e9-43cc-91ef-ab97d04dc5a6": {
+        "id": "30bbfc87-47e9-43cc-91ef-ab97d04dc5a6",
+        "text": "cc",
+        "created_at": 1645787430
+    },
+    "36119afd-1ad1-4de7-a021-fef72a13ab3f": {
+        "id": "36119afd-1ad1-4de7-a021-fef72a13ab3f",
+        "text": "Nice",
+        "created_at": 1645787430
+    },
+    "55b792d5-2690-463f-95a5-e4cf1647dff8": {
+        "id": "55b792d5-2690-463f-95a5-e4cf1647dff8",
+        "text": "cc",
+        "created_at": 1645787431
+    }
+}
+
 
 ############################################################
-@get("/app.css")
+@post("/tweets")
 def _():
-    return static_file("app.css", root=APP_FOLDER_ABSOLUTE_PATH)
+    try:
+        # Validate
+        if not request.forms.get("tweet_text"):
+            response.status = 400
+            return "Tweet text is missing"
+
+        tweet_text = request.forms.get("tweet_text").strip()
+
+        if len(tweet_text) < TWEET_TEXT_MIN_LENGTH:
+            response.status = 400
+            return {
+                "info": f"Tweets must be at least {TWEET_TEXT_MIN_LENGTH} character"
+            }
+
+        if len(tweet_text) > TWEET_TEXT_MAX_LENGTH:
+            response.status = 400
+            return {
+                "info": f"Tweets can only have a maximum of {TWEET_TEXT_MAX_LENGTH} characters"
+            }
+
+        tweet_id = str(uuid.uuid4())
+        tweet_created_at = int(time.time())
+        tweet = {
+            "id": tweet_id,
+            "text": tweet_text,
+            "created_at": tweet_created_at,
+            "updated_at": 0
+        }
+        tweets[tweet_id] = tweet
+        
+        # Success
+        response.status = 201
+        return { "id": tweet_id }
+    except Exception as ex:
+        print(ex)
+        response.status = 500
+        return { 
+            "info": "Ups, something went wrong" 
+        }
 
 
 ############################################################
-@get("/images/<filepath:path>")
-def server_static(filepath):
-    return static_file(filepath, root=IMAGE_FOLDER_ABSOLUTE_PATH)
-
-
-############################################################
-@get("/")
-@view("index")
+@get("/tweets")
 def _():
-    return
+    try:
+        # Success
+        return tweets
+    except Exception as ex:
+        print(ex)
+        response.status = 500
+        return { 
+            "info": "Ups, something went wrong" 
+        }
 
 
 ############################################################
-@get("/about-us")
-@view("about-us")
-def _():
-    return
+@get("/tweets/<id>")
+def _(id):
+    try:
+        # Validate
+        if not re.match(REGEX_UUID4, id):
+            response.status = 204
+            return
+
+        if id not in tweets:
+            response.status = 204
+            return
+
+        # Success
+        return tweets[id]
+    except Exception as ex:
+        print(ex)
+        response.status = 500
+        return  { "info": "Ups, something went wrong" }
 
 
 ############################################################
-@get("/contact-us")
-@view("contact-us")
-def _():
-    return
+@put("/tweets/<id>")
+def _(id):
+    try:
+        # Validate tweet ID
+        if not re.match(REGEX_UUID4, id):
+            response.status = 204
+            return
+
+        if id not in tweets:
+            response.status = 204
+            return
+
+        if not request.forms.get("tweet_text"):
+            response.status = 400
+            return {
+                "info": "Tweet text is missing"
+            }
+
+        # Validate tweet_text
+        tweet_text = request.forms.get("tweet_text").strip()
+
+        if len(tweet_text) < TWEET_TEXT_MIN_LENGTH:
+            response.status = 400
+            return {
+                "info": f"Tweets must be at least {TWEET_TEXT_MIN_LENGTH} character"
+            }
+
+        if len(tweet_text) > TWEET_TEXT_MAX_LENGTH:
+            response.status = 400
+            return {
+                "info": f"Tweets can only have a maximum of {TWEET_TEXT_MAX_LENGTH} characters"
+            }
+
+        # Update the tweet
+        tweets[id]['text'] = tweet_text
+        tweets[id]['updated_at'] = int(time.time())
+
+        response.status = 201
+        return tweets[id]
+    except Exception as ex:
+        print(ex)
+        response.status = 500
+        return  { "info": "Ups, something went wrong" }
 
 
 ############################################################
-@get("/gallery")
-@view("gallery")
-def _():
-    images = os.listdir(IMAGE_FOLDER_ABSOLUTE_PATH)
-    return dict(images=images)
+@delete("/tweets/<id>")
+def _(id):
+    try:
+        # Validate
+        if not re.match(REGEX_UUID4, id):
+            response.status = 204
+            return 
 
+        # Check if tweet id is inside the tweets
+        if id not in tweets:
+            response.status = 204
+            return
+        
+        # Delete the tweet
+        tweets.pop(id)
 
-############################################################
-@get("/thank-you")
-@view("thank-you")
-def _():
-    image_url = request.params.get("image-url")
-
-    return dict(image_url=image_url)
-
-
-############################################################
-@post("/upload-image")
-def _():
-    image = request.files.get("my_image")
-
-    # Get image extension woody-kelly.png
-    file_name, file_extension = os.path.splitext(image.filename)  # .png .jpeg, .jpg
-
-    # Validate image extension
-    if file_extension not in (".png", ".jpeg", ".jpg"):
-        return "Image not allowed"
-
-    # Convert old .jpg extension to .jpeg, so it pass imghdr.what validation
-    if file_extension == ".jpg":
-        file_extension = ".jpeg"
-
-    image_id = str(uuid.uuid4())
-    # 4333343-434356-46564543534.png
-    image_name = f"{image_id}{file_extension}"
-    image_url = f"{IMAGE_FOLDER_ABSOLUTE_PATH}/{image_name}"
-
-    # Save the image
-    image.save(image_url)
-
-    validated_file_extension = imghdr.what(image_url)
-
-    # Make sure that the image is actually a valid image
-    # by reading its mime type
-    if file_extension != f".{validated_file_extension}":
-        # Remove the invalid image from the folder
-        os.remove(image_url)
-        return "Hmm... got you! It was not an image"
-
-    return redirect(f"/thank-you?image-url=images/{image_name}")
+        # Success
+        return {
+            "info": "Tweet deleted"
+        }
+    except Exception as ex:
+        print(ex)
+        response.status = 500
+        return { 
+            "info": "Ups, something went wrong" 
+        }
 
 
 ############################################################
